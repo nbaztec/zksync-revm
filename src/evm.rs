@@ -1,5 +1,8 @@
 //! Contains the `[ZKsyncEvm]` type and its implementation of the execution EVM traits.
+use std::ops::{Deref, DerefMut};
+
 use crate::precompiles::ZKsyncPrecompiles;
+use alloy_evm::precompiles::PrecompilesMap;
 use revm::{
     Database, Inspector,
     context::{ContextError, ContextSetters, Evm, FrameStack},
@@ -19,15 +22,27 @@ pub struct ZKsyncEvm<
     CTX,
     INSP,
     I = EthInstructions<EthInterpreter, CTX>,
-    P = ZKsyncPrecompiles,
+    P = PrecompilesMap,
     F = EthFrame<EthInterpreter>,
 >(
     /// Inner EVM type.
     pub Evm<CTX, INSP, I, P, F>,
 );
 
+impl<CTX, INSP, I, P, F> AsRef<Evm<CTX, INSP, I, P, F>> for ZKsyncEvm<CTX, INSP, I, P, F> {
+    fn as_ref(&self) -> &Evm<CTX, INSP, I, P, F> {
+        &self.0
+    }
+}
+
+impl<CTX, INSP, I, P, F> AsMut<Evm<CTX, INSP, I, P, F>> for ZKsyncEvm<CTX, INSP, I, P, F> {
+    fn as_mut(&mut self) -> &mut Evm<CTX, INSP, I, P, F> {
+        &mut self.0
+    }
+}
+
 impl<CTX: ContextTr, INSP>
-    ZKsyncEvm<CTX, INSP, EthInstructions<EthInterpreter, CTX>, ZKsyncPrecompiles>
+    ZKsyncEvm<CTX, INSP, EthInstructions<EthInterpreter, CTX>, PrecompilesMap>
 {
     /// Create a new ZKsync OS EVM.
     pub fn new(ctx: CTX, inspector: INSP) -> Self {
@@ -35,7 +50,7 @@ impl<CTX: ContextTr, INSP>
             ctx,
             inspector,
             instruction: EthInstructions::new_mainnet(),
-            precompiles: ZKsyncPrecompiles::default(),
+            precompiles: PrecompilesMap::from_static(ZKsyncPrecompiles::default().precompiles()),
             frame_stack: FrameStack::new(),
         })
     }
@@ -100,6 +115,30 @@ where
             &mut self.0.instruction,
         )
     }
+
+    fn all_inspector(
+        &self,
+    ) -> (
+        &Self::Context,
+        &Self::Instructions,
+        &Self::Precompiles,
+        &FrameStack<Self::Frame>,
+        &Self::Inspector,
+    ) {
+        self.0.all_inspector()
+    }
+
+    fn all_mut_inspector(
+        &mut self,
+    ) -> (
+        &mut Self::Context,
+        &mut Self::Instructions,
+        &mut Self::Precompiles,
+        &mut FrameStack<Self::Frame>,
+        &mut Self::Inspector,
+    ) {
+        self.0.all_mut_inspector()
+    }
 }
 
 impl<CTX, INSP, I, P> EvmTr for ZKsyncEvm<CTX, INSP, I, P, EthFrame<EthInterpreter>>
@@ -162,5 +201,45 @@ where
         ContextError<<<Self::Context as ContextTr>::Db as Database>::Error>,
     > {
         self.0.frame_return_result(result)
+    }
+
+    #[doc = " Returns a tuple of references to the context, the frame and the instructions."]
+    #[allow(clippy::type_complexity)]
+    fn all(
+        &self,
+    ) -> (
+        &Self::Context,
+        &Self::Instructions,
+        &Self::Precompiles,
+        &FrameStack<Self::Frame>,
+    ) {
+        self.0.all()
+    }
+
+    #[doc = " Returns a tuple of mutable references to the context, the frame and the instructions."]
+    #[allow(clippy::type_complexity)]
+    fn all_mut(
+        &mut self,
+    ) -> (
+        &mut Self::Context,
+        &mut Self::Instructions,
+        &mut Self::Precompiles,
+        &mut FrameStack<Self::Frame>,
+    ) {
+        self.0.all_mut()
+    }
+}
+
+impl<CTX, INSP, I, P, F> Deref for ZKsyncEvm<CTX, INSP, I, P, F> {
+    type Target = CTX;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0.ctx
+    }
+}
+
+impl<CTX, INSP, I, P, F> DerefMut for ZKsyncEvm<CTX, INSP, I, P, F> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0.ctx
     }
 }

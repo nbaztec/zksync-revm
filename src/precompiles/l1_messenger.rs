@@ -2,8 +2,7 @@ use revm::{
     context::{Cfg, JournalTr},
     context_interface::ContextTr,
     interpreter::{
-        Gas, InstructionResult, InterpreterResult,
-        gas::{KECCAK256, KECCAK256WORD, LOG, LOGDATA, LOGTOPIC},
+        CallValue, Gas, InstructionResult, InterpreterResult, gas::{KECCAK256, KECCAK256WORD, LOG, LOGDATA, LOGTOPIC}
     },
     primitives::{Address, B256, Bytes, Log, LogData, U256, address, keccak256},
 };
@@ -35,7 +34,7 @@ pub fn l1_messenger_precompile_call<CTX>(
     caller: Address,
     is_static: bool,
     gas_limit: u64,
-    call_value: U256,
+    call_value: CallValue,
     mut calldata: &[u8],
 ) -> InterpreterResult
 where
@@ -56,7 +55,7 @@ where
     selector.copy_from_slice(&calldata[..4]);
     match selector {
         s if s == SEND_TO_L1_SELECTOR => {
-            if call_value != U256::ZERO {
+            if !call_value.get().is_zero() {
                 return error();
             }
             if is_static {

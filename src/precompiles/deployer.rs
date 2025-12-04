@@ -2,7 +2,7 @@ use revm::{
     Database,
     context::{Cfg, JournalTr},
     context_interface::ContextTr,
-    interpreter::{Gas, InstructionResult, InterpreterResult},
+    interpreter::{CallValue, Gas, InstructionResult, InterpreterResult},
     primitives::{Address, B256, Bytes, U256, address},
     state::Bytecode,
 };
@@ -25,7 +25,7 @@ pub fn deployer_precompile_call<CTX>(
     caller: Address,
     is_static: bool,
     gas_limit: u64,
-    call_value: U256,
+    call_value: CallValue,
     mut calldata: &[u8],
 ) -> InterpreterResult
 where
@@ -38,7 +38,7 @@ where
             Gas::new(gas_limit - 10),
         )
     };
-    if call_value != U256::ZERO {
+    if !call_value.get().is_zero() {
         return error();
     }
     if calldata.len() < 4 {
@@ -96,11 +96,11 @@ where
             let bytecode_padded = Bytecode::new_legacy(Bytes::copy_from_slice(
                 &bytecode.original_bytes()[0..bytecode_length as usize],
             ));
-            ctx.journal_mut().touch_account(address);
-            ctx.journal_mut()
-                .warm_account(address)
-                .expect("warm account");
-            ctx.journal_mut().set_code(address, bytecode_padded);
+            let mut account = ctx
+                .journal_mut()
+                .load_account_mut(address)
+                .expect("load account");
+            account.set_code(bytecode_hash, bytecode_padded);
             InterpreterResult::new(
                 InstructionResult::Return,
                 [].into(),

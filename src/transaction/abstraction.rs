@@ -2,6 +2,7 @@
 use super::priority_tx::{
     L1_PRIORITY_TRANSACTION_TYPE, L1ToL2TransactionParts, UPGRADE_TRANSACTION_TYPE,
 };
+use alloy_evm::IntoTxEnv;
 use auto_impl::auto_impl;
 use revm::{
     context::{
@@ -191,6 +192,12 @@ impl<T: Transaction> ZkTxTr for ZKsyncTx<T> {
 
     fn force_fail(&self) -> bool {
         self.force_fail
+    }
+}
+
+impl<T: Transaction> IntoTxEnv<Self> for ZKsyncTx<T> {
+    fn into_tx_env(self) -> Self {
+        self
     }
 }
 

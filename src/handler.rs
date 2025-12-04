@@ -141,12 +141,12 @@ where
 
         let (tx, journal) = ctx.tx_journal_mut();
 
-        let caller_account = journal.load_account_code(tx.caller())?.data;
+        let mut caller_account = journal.load_account_with_code_mut(tx.caller())?.data;
 
         if !is_l1_to_l2_tx {
             // validates account nonce and code
             validate_account_nonce_and_code(
-                &mut caller_account.info,
+                &caller_account.info,
                 tx.nonce(),
                 is_eip3607_disabled,
                 is_nonce_check_disabled,
@@ -180,12 +180,11 @@ where
         new_balance = new_balance.saturating_sub(gas_balance_spending);
 
         // Touch account so we know it is changed.
-        caller_account.mark_touch();
-        caller_account.info.balance = new_balance;
+        caller_account.set_balance(new_balance);
 
         // Bump the nonce for calls. Nonce for CREATE will be bumped in `handle_create`.
         if !is_l1_to_l2_tx && tx.kind().is_call() {
-            caller_account.info.nonce = caller_account.info.nonce.saturating_add(1);
+            caller_account.set_nonce(caller_account.nonce().saturating_add(1));
         }
 
         // NOTE: all changes to the caller account should journaled so in case of error

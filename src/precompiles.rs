@@ -4,7 +4,7 @@ use revm::{
     context::{Cfg, LocalContextTr},
     context_interface::ContextTr,
     handler::{EthPrecompiles, PrecompileProvider},
-    interpreter::{InputsImpl, InterpreterResult},
+    interpreter::{CallInputs, InterpreterResult},
     precompile::{Precompiles, bn254, hash, identity, modexp, secp256k1},
     primitives::{Address, OnceLock},
 };
@@ -88,10 +88,11 @@ where
     fn run(
         &mut self,
         context: &mut CTX,
-        address: &Address,
-        inputs: &InputsImpl,
-        is_static: bool,
-        gas_limit: u64,
+        inputs: &CallInputs,
+        // address: &Address,
+        // inputs: &InputsImpl,
+        // is_static: bool,
+        // gas_limit: u64,
     ) -> Result<Option<Self::Output>, String> {
         // Closure to get vector calldata bytes
         let get_input_bytes = || match &inputs.input {
@@ -104,37 +105,36 @@ where
             }
             revm::interpreter::CallInput::Bytes(bytes) => bytes.0.to_vec(),
         };
-        if *address == CONTRACT_DEPLOYER_ADDRESS {
+        if inputs.target_address == CONTRACT_DEPLOYER_ADDRESS {
             return Ok(Some(deployer_precompile_call(
                 context,
-                inputs.caller_address,
-                is_static,
-                gas_limit,
-                inputs.call_value,
+                inputs.caller,
+                inputs.is_static,
+                inputs.gas_limit,
+                inputs.value.clone(),
                 &get_input_bytes(),
             )));
-        } else if *address == L1_MESSENGER_ADDRESS {
+        } else if inputs.target_address == L1_MESSENGER_ADDRESS {
             return Ok(Some(l1_messenger_precompile_call(
                 context,
-                inputs.caller_address,
-                is_static,
-                gas_limit,
-                inputs.call_value,
+                inputs.caller,
+                inputs.is_static,
+                inputs.gas_limit,
+                inputs.value.clone(),
                 &get_input_bytes(),
             )));
-        } else if *address == L2_BASE_TOKEN_ADDRESS {
+        } else if inputs.target_address == L2_BASE_TOKEN_ADDRESS {
             return Ok(Some(l2_base_token_precompile_call(
                 context,
-                inputs.caller_address,
-                is_static,
-                gas_limit,
-                inputs.call_value,
+                inputs.caller,
+                inputs.is_static,
+                inputs.gas_limit,
+                inputs.value.clone(),
                 &get_input_bytes(),
             )));
         }
 
-        self.inner
-            .run(context, address, inputs, is_static, gas_limit)
+        self.inner.run(context, inputs)
     }
 
     #[inline]

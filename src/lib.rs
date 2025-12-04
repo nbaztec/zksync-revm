@@ -3,6 +3,7 @@
 
 pub mod api;
 pub mod evm;
+pub mod env;
 pub mod handler;
 pub mod precompiles;
 pub mod result;
@@ -17,3 +18,5 @@ pub use evm::ZKsyncEvm;
 pub use result::ZkHaltReason;
 pub use spec::*;
 pub use transaction::{ZKsyncTx, error::ZKsyncTxError};
+pub use revm::Context;
+pub use env::ZKsyncEnv;

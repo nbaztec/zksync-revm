@@ -1,5 +1,6 @@
 //! Builder trait [`ZkBuilder`] used to build [`ZKsyncEvm`].
 use crate::{ZkSpecId, evm::ZKsyncEvm, precompiles::ZKsyncPrecompiles, transaction::ZkTxTr};
+use alloy_evm::precompiles::PrecompilesMap;
 use revm::{
     Context, Database,
     context::Cfg,
@@ -11,7 +12,7 @@ use revm::{
 
 /// Type alias for default ZKsyncEvm
 pub type DefaultZKsyncEvm<CTX, INSP = ()> =
-    ZKsyncEvm<CTX, INSP, EthInstructions<EthInterpreter, CTX>, ZKsyncPrecompiles>;
+    ZKsyncEvm<CTX, INSP, EthInstructions<EthInterpreter, CTX>, PrecompilesMap>;
 
 /// Trait that allows for ZKsyncEvm to be built.
 pub trait ZkBuilder: Sized {

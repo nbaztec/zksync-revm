@@ -2,7 +2,7 @@ use std::vec::Vec;
 
 use revm::{
     context::{Cfg, ContextTr, JournalTr},
-    interpreter::{Gas, InstructionResult, InterpreterResult},
+    interpreter::{CallValue, Gas, InstructionResult, InterpreterResult},
     primitives::{Address, U256, address},
 };
 
@@ -25,7 +25,7 @@ pub fn l2_base_token_precompile_call<CTX>(
     caller: Address,
     is_static: bool,
     gas_limit: u64,
-    call_value: U256,
+    call_value: CallValue,
     calldata: &[u8],
 ) -> InterpreterResult
 where
@@ -60,21 +60,20 @@ where
             if calldata_len < 36 {
                 return error();
             }
-            ctx.journal_mut()
-                .warm_account(L2_BASE_TOKEN_ADDRESS)
-                .expect("warm account");
 
-            ctx.journal_mut().touch_account(L2_BASE_TOKEN_ADDRESS);
             let mut from_account = ctx
                 .journal_mut()
-                .load_account(L2_BASE_TOKEN_ADDRESS)
+                .load_account_mut(L2_BASE_TOKEN_ADDRESS)
                 .expect("load account");
-            let from_balance = &mut from_account.info.balance;
-            let balance_before = from_balance.clone();
-            let Some(from_balance_decr) = from_balance.checked_sub(call_value) else {
+
+            let balance_before = *from_account.balance();
+            let CallValue::Transfer(call_value) = call_value else {
                 return error();
             };
-            *from_balance = from_balance_decr;
+            let Some(from_balance_decr) = from_account.balance().checked_sub(call_value) else {
+                return error();
+            };
+            from_account.set_balance(from_balance_decr);
             ctx.journal_mut().caller_accounting_journal_entry(
                 L2_BASE_TOKEN_ADDRESS,
                 balance_before,
@@ -164,21 +163,19 @@ where
             if calldata[4..4 + 12].iter().any(|byte| *byte != 0) {
                 return error();
             }
-            ctx.journal_mut()
-                .warm_account(L2_BASE_TOKEN_ADDRESS)
-                .expect("warm account");
 
-            ctx.journal_mut().touch_account(L2_BASE_TOKEN_ADDRESS);
             let mut from_account = ctx
                 .journal_mut()
-                .load_account(L2_BASE_TOKEN_ADDRESS)
+                .load_account_mut(L2_BASE_TOKEN_ADDRESS)
                 .expect("load account");
-            let from_balance = &mut from_account.info.balance;
-            let balance_before = from_balance.clone();
-            let Some(from_balance_decr) = from_balance.checked_sub(call_value) else {
+            let balance_before = *from_account.balance();
+            let CallValue::Transfer(call_value) = call_value else {
                 return error();
             };
-            *from_balance = from_balance_decr;
+            let Some(from_balance_decr) = from_account.balance().checked_sub(call_value) else {
+                return error();
+            };
+            from_account.set_balance(from_balance_decr);
             ctx.journal_mut().caller_accounting_journal_entry(
                 L2_BASE_TOKEN_ADDRESS,
                 balance_before,
