@@ -89,7 +89,6 @@ where
             return Ok(());
         }
 
-        println!("VALIDATE MAINNET");
         // Do not perform any extra validation for L1 -> L2 transactions, they are pre-verified on L1.
         self.mainnet.validate_env(evm)
     }
@@ -102,7 +101,6 @@ where
         init_and_floor_gas: InitialAndFloorGas,
         eip7702_gas_refund: i64,
     ) -> Result<(), Self::Error> {
-        println!("POST EXEC");
         if let Some(gas_used_override) = evm.ctx().tx().gas_used_override() {
             let gas_limit = evm.ctx().tx().gas_limit();
             // Just in case use at most `gas_limit` gas to prevent the underflow
@@ -134,7 +132,6 @@ where
         &self,
         evm: &mut Self::Evm,
     ) -> Result<(), Self::Error> {
-        println!("DEDICT 3");
         let ctx = evm.ctx();
 
         let basefee = ctx.block().basefee() as u128;
@@ -205,7 +202,6 @@ where
         evm: &mut Self::Evm,
         frame_result: &mut <<Self::Evm as EvmTr>::Frame as FrameTr>::FrameResult,
     ) -> Result<(), Self::Error> {
-        println!("REIMB");
         reimburse_caller(evm.ctx(), frame_result.gas(), U256::ZERO)?;
 
         let is_l1_to_l2_tx = evm.ctx().tx().is_l1_to_l2_tx();
@@ -246,7 +242,6 @@ where
         evm: &mut Self::Evm,
         frame_result: &mut <<Self::Evm as EvmTr>::Frame as FrameTr>::FrameResult,
     ) -> Result<(), Self::Error> {
-        println!("REW");
         let beneficiary = evm.ctx().block().beneficiary();
         let basefee = evm.ctx().block().basefee() as u128;
         let effective_gas_price = evm.ctx().tx().effective_gas_price(basefee);
@@ -265,7 +260,6 @@ where
         evm: &mut Self::Evm,
         frame_result: <<Self::Evm as EvmTr>::Frame as FrameTr>::FrameResult,
     ) -> Result<ExecutionResult<Self::HaltReason>, Self::Error> {
-        println!("RES");
         match core::mem::replace(evm.ctx().error(), Ok(())) {
             Err(ContextError::Db(e)) => return Err(e.into()),
             Err(ContextError::Custom(e)) => return Err(Self::Error::from_string(e)),
@@ -286,7 +280,6 @@ where
         &mut self,
         evm: &mut Self::Evm,
     ) -> Result<ExecutionResult<Self::HaltReason>, Self::Error> {
-        println!("RUN");
         let init_and_floor_gas = self.validate(evm)?;
         let eip7702_refund = self.pre_execution(evm)? as i64;
 

@@ -53,21 +53,18 @@ where
     }
 
     fn transact_one(&mut self, tx: Self::Tx) -> Result<Self::ExecutionResult, Self::Error> {
-        println!("TX ONE");
         self.0.ctx.set_tx(tx);
         let mut h = ZKsyncHandler::<_, _, EthFrame<EthInterpreter>>::new();
         h.run(self)
     }
 
     fn finalize(&mut self) -> Self::State {
-        println!("FINAL");
         self.0.ctx.journal_mut().finalize()
     }
 
     fn replay(
         &mut self,
     ) -> Result<ExecResultAndState<Self::ExecutionResult, Self::State>, Self::Error> {
-        println!("REPLAY");
         let mut h = ZKsyncHandler::<_, _, EthFrame<EthInterpreter>>::new();
         h.run(self).map(|result| {
             let state = self.finalize();
@@ -101,7 +98,6 @@ where
     }
 
     fn inspect_one_tx(&mut self, tx: Self::Tx) -> Result<Self::ExecutionResult, Self::Error> {
-        println!("INPECT ONE");
         self.0.ctx.set_tx(tx);
         let mut h = ZKsyncHandler::<_, _, EthFrame<EthInterpreter>>::new();
         h.inspect_run(self)
@@ -129,7 +125,6 @@ where
         system_contract_address: Address,
         data: Bytes,
     ) -> Result<Self::ExecutionResult, Self::Error> {
-        println!("SYSTE ONE");
         self.0.ctx.set_tx(CTX::Tx::new_system_tx_with_caller(
             caller,
             system_contract_address,
@@ -153,7 +148,6 @@ where
         system_contract_address: Address,
         data: Bytes,
     ) -> Result<Self::ExecutionResult, Self::Error> {
-        println!("INSP ONE SYS");
         self.0.ctx.set_tx(CTX::Tx::new_system_tx_with_caller(
             caller,
             system_contract_address,
