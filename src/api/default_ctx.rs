@@ -1,11 +1,14 @@
 //! Contains trait [`DefaultZk`] used to create a default context.
 use crate::{ZKsyncTx, ZkSpecId};
 use revm::{
-    Context, Database, Journal, MainContext, context::{BlockEnv, CfgEnv, TxEnv}, database_interface::EmptyDB
+    Context, Database, Journal, MainContext,
+    context::{BlockEnv, CfgEnv, TxEnv},
+    database_interface::EmptyDB,
 };
 
 /// Type alias for the default context type of the ZKsyncEvm.
-pub type ZkContext<DB, J = Journal<DB>, C = ()> = Context<BlockEnv, ZKsyncTx<TxEnv>, CfgEnv<ZkSpecId>, DB, J, C>;
+pub type ZkContext<DB, J = Journal<DB>, C = ()> =
+    Context<BlockEnv, ZKsyncTx<TxEnv>, CfgEnv<ZkSpecId>, DB, J, C>;
 // pub type ZkContext<DB, TX, CFG, DB> = Context<
 //     BLOCK = BlockEnv,
 //     TX = TxEnv,

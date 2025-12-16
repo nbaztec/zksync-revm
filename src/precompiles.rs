@@ -1,5 +1,5 @@
 //! Contains ZKsync OS specific precompiles.
-use crate::ZkSpecId;
+use crate::{ZKsyncEvm, ZkSpecId};
 use revm::{
     context::{Cfg, LocalContextTr},
     context_interface::ContextTr,

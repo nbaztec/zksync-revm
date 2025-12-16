@@ -1,4 +1,5 @@
 //! Contains the `[ZKsyncTxError]` type.
+use alloy_evm::InvalidTxError;
 use core::fmt::Display;
 use revm::context_interface::{
     result::{EVMError, InvalidTransaction},
@@ -33,6 +34,19 @@ impl From<InvalidTransaction> for ZKsyncTxError {
 impl<DBError> From<ZKsyncTxError> for EVMError<DBError, ZKsyncTxError> {
     fn from(value: ZKsyncTxError) -> Self {
         Self::Transaction(value)
+    }
+}
+
+impl InvalidTxError for ZKsyncTxError {
+    fn is_nonce_too_low(&self) -> bool {
+        matches!(self, Self::Base(tx) if tx.is_nonce_too_low())
+    }
+
+    fn as_invalid_tx_err(&self) -> Option<&InvalidTransaction> {
+        match self {
+            Self::Base(tx) => Some(tx),
+            _ => None,
+        }
     }
 }
 

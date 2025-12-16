@@ -2,7 +2,8 @@ use revm::{
     context::{Cfg, JournalTr},
     context_interface::ContextTr,
     interpreter::{
-        CallValue, Gas, InstructionResult, InterpreterResult, gas::{KECCAK256, KECCAK256WORD, LOG, LOGDATA, LOGTOPIC}
+        CallValue, Gas, InstructionResult, InterpreterResult,
+        gas::{KECCAK256, KECCAK256WORD, LOG, LOGDATA, LOGTOPIC},
     },
     primitives::{Address, B256, Bytes, Log, LogData, U256, address, keccak256},
 };

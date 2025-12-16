@@ -2,8 +2,8 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 pub mod api;
-pub mod evm;
 pub mod env;
+pub mod evm;
 pub mod handler;
 pub mod precompiles;
 pub mod result;
@@ -14,9 +14,9 @@ pub use api::{
     builder::ZkBuilder,
     default_ctx::{DefaultZk, ZkContext},
 };
+pub use env::ZKsyncEnv;
 pub use evm::ZKsyncEvm;
 pub use result::ZkHaltReason;
+pub use revm::Context;
 pub use spec::*;
 pub use transaction::{ZKsyncTx, error::ZKsyncTxError};
-pub use revm::Context;
-pub use env::ZKsyncEnv;
