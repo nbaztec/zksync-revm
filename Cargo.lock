@@ -4304,8 +4304,10 @@ version = "0.1.0"
 dependencies = [
  "alloy-evm",
  "alloy-primitives",
+ "alloy-sol-types",
  "auto_impl",
  "revm",
  "serde",
  "serde_derive",
+ "tracing",
 ]

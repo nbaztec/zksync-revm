@@ -26,6 +26,8 @@ alloy-primitives = { version = "1.4.1", features = [
 ] }
 # alloy-evm = { path = "../alloy-evm/crates/evm"}
 alloy-evm = "0.25.1"
+alloy-sol-types = "1.4.1"
+tracing = "0.1"
 
 [dev-dependencies]
 serde_derive = "1.0"

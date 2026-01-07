@@ -1,5 +1,5 @@
 //! Contains ZKsync OS specific precompiles.
-use crate::{ZKsyncEvm, ZkSpecId};
+use crate::ZkSpecId;
 use revm::{
     context::{Cfg, LocalContextTr},
     context_interface::ContextTr,
@@ -18,6 +18,8 @@ pub mod l2_base_token;
 use deployer::{CONTRACT_DEPLOYER_ADDRESS, deployer_precompile_call};
 use l1_messenger::{L1_MESSENGER_ADDRESS, l1_messenger_precompile_call};
 use l2_base_token::{L2_BASE_TOKEN_ADDRESS, l2_base_token_precompile_call};
+
+const CUSTOM_PRECOMPILE_ADDRESSES: [Address; 1] = [L2_BASE_TOKEN_ADDRESS];
 
 /// ZKsync OS precompile provider
 #[derive(Debug, Clone)]
@@ -139,12 +141,14 @@ where
 
     #[inline]
     fn warm_addresses(&self) -> Box<impl Iterator<Item = Address>> {
-        self.inner.warm_addresses()
+        let mut addresses = CUSTOM_PRECOMPILE_ADDRESSES.clone().to_vec();
+        addresses.extend(self.inner.warm_addresses());
+        Box::new(addresses.into_iter())
     }
 
     #[inline]
     fn contains(&self, address: &Address) -> bool {
-        self.inner.contains(address)
+        CUSTOM_PRECOMPILE_ADDRESSES.contains(address) || self.inner.contains(address)
     }
 }
 

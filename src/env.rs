@@ -4,10 +4,7 @@ use core::fmt::Debug;
 
 use alloy_evm::EvmEnv;
 use alloy_primitives::U256;
-use revm::{
-    context::{BlockEnv, CfgEnv},
-    primitives::hardfork::SpecId,
-};
+use revm::context::{BlockEnv, CfgEnv};
 
 use crate::ZkSpecId;
 

@@ -1,5 +1,7 @@
 use std::vec::Vec;
 
+use alloy_primitives::hex;
+use alloy_sol_types::SolValue;
 use revm::{
     context::{Cfg, ContextTr, JournalTr},
     interpreter::{CallValue, Gas, InstructionResult, InterpreterResult},
@@ -12,6 +14,9 @@ pub const L2_BASE_TOKEN_ADDRESS: Address = address!("000000000000000000000000000
 
 // withdraw(address) - 51cff8d9
 pub const WITHDRAW_SELECTOR: &[u8] = &[0x51, 0xcf, 0xf8, 0xd9];
+
+// balanceOf(address) - 70a08231
+pub const BALANCE_OF_SELECTOR: &[u8] = &[0x70, 0xa0, 0x82, 0x31];
 
 // withdrawWithMessage(address,bytes) - 84bc3eb0
 pub const WITHDRAW_WITH_MESSAGE_SELECTOR: &[u8] = &[0x84, 0xbc, 0x3e, 0xb0];
@@ -52,6 +57,31 @@ where
         }
     };
     match selector {
+        s if s == BALANCE_OF_SELECTOR => {
+            let address = match Address::try_from(&calldata[4..]) {
+                Ok(addr) => addr,
+                Err(err) => {
+                    tracing::error!("failed decoding address for balanceOf(address) call {err:?}");
+                    return InterpreterResult::new(
+                        InstructionResult::Revert,
+                        [].into(),
+                        Gas::new(gas_limit - 10),
+                    );
+                }
+            };
+            let balance = ctx
+                .journal_mut()
+                .load_account_mut(address)
+                .expect("load account")
+                .balance()
+                .to_owned();
+
+            InterpreterResult::new(
+                InstructionResult::Return,
+                balance.abi_encode().into(),
+                Gas::new(gas_limit),
+            )
+        }
         s if s == WITHDRAW_SELECTOR => {
             if is_static {
                 return error();
@@ -227,6 +257,12 @@ where
 
             InterpreterResult::new(InstructionResult::Return, [].into(), Gas::new(gas_limit))
         }
-        _ => error(),
+        _ => InterpreterResult::new(
+            InstructionResult::Revert,
+            format!("invalid selector {}", hex::encode(selector))
+                .abi_encode()
+                .into(),
+            Gas::new(gas_limit - 10),
+        ),
     }
 }

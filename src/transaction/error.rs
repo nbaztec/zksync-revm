@@ -43,6 +43,7 @@ impl InvalidTxError for ZKsyncTxError {
     }
 
     fn as_invalid_tx_err(&self) -> Option<&InvalidTransaction> {
+        #[allow(unreachable_patterns)]
         match self {
             Self::Base(tx) => Some(tx),
             _ => None,

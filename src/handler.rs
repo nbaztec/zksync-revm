@@ -7,10 +7,7 @@ use crate::{
     transaction::{ZKsyncTxError, ZkTxTr},
 };
 use revm::{
-    context::{
-        LocalContextTr,
-        result::{HaltReason, InvalidTransaction},
-    },
+    context::{LocalContextTr, result::InvalidTransaction},
     context_interface::{
         Block, Cfg, ContextTr, JournalTr, Transaction,
         context::ContextError,
@@ -119,9 +116,15 @@ where
             self.reward_beneficiary(evm, exec_result)?;
         } else {
             // Vanilla path: keep default EVM accounting
+            // Handler::post_execution(self, evm, exec_result, init_and_floor_gas, eip7702_gas_refund)?;
+            // Calculate final refund and add EIP-7702 refund to gas.
             self.refund(evm, exec_result, eip7702_gas_refund);
+            // Ensure gas floor is met and minimum floor gas is spent.
+            // if `cfg.is_eip7623_disabled` is true, floor gas will be set to zero
             self.eip7623_check_gas_floor(evm, exec_result, init_and_floor_gas);
+            // Return unused gas to caller
             self.reimburse_caller(evm, exec_result)?;
+            // Pay transaction fees to beneficiary
             self.reward_beneficiary(evm, exec_result)?;
         }
 

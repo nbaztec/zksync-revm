@@ -1,7 +1,7 @@
 //! Contains trait [`DefaultZk`] used to create a default context.
 use crate::{ZKsyncTx, ZkSpecId};
 use revm::{
-    Context, Database, Journal, MainContext,
+    Context, Journal, MainContext,
     context::{BlockEnv, CfgEnv, TxEnv},
     database_interface::EmptyDB,
 };

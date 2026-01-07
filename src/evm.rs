@@ -2,7 +2,6 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::precompiles::ZKsyncPrecompiles;
-use alloy_evm::precompiles::PrecompilesMap;
 use revm::{
     Database, Inspector,
     context::{ContextError, ContextSetters, Evm, FrameStack},
@@ -22,7 +21,7 @@ pub struct ZKsyncEvm<
     CTX,
     INSP,
     I = EthInstructions<EthInterpreter, CTX>,
-    P = PrecompilesMap,
+    P = ZKsyncPrecompiles,
     F = EthFrame<EthInterpreter>,
 >(
     /// Inner EVM type.
@@ -42,7 +41,7 @@ impl<CTX, INSP, I, P, F> AsMut<Evm<CTX, INSP, I, P, F>> for ZKsyncEvm<CTX, INSP,
 }
 
 impl<CTX: ContextTr, INSP>
-    ZKsyncEvm<CTX, INSP, EthInstructions<EthInterpreter, CTX>, PrecompilesMap>
+    ZKsyncEvm<CTX, INSP, EthInstructions<EthInterpreter, CTX>, ZKsyncPrecompiles>
 {
     /// Create a new ZKsync OS EVM.
     pub fn new(ctx: CTX, inspector: INSP) -> Self {
@@ -50,7 +49,7 @@ impl<CTX: ContextTr, INSP>
             ctx,
             inspector,
             instruction: EthInstructions::new_mainnet(),
-            precompiles: PrecompilesMap::from_static(ZKsyncPrecompiles::default().precompiles()),
+            precompiles: ZKsyncPrecompiles::default(),
             frame_stack: FrameStack::new(),
         })
     }
@@ -138,6 +137,23 @@ where
         &mut Self::Inspector,
     ) {
         self.0.all_mut_inspector()
+    }
+
+    fn inspect_frame_init(
+        &mut self,
+        frame_init: <Self::Frame as FrameTr>::FrameInit,
+    ) -> Result<
+        revm::handler::evm::FrameInitResult<'_, Self::Frame>,
+        revm::handler::evm::ContextDbError<Self::Context>,
+    > {
+        self.0.inspect_frame_init(frame_init)
+    }
+
+    fn inspect_frame_run(
+        &mut self,
+    ) -> Result<FrameInitOrResult<Self::Frame>, revm::handler::evm::ContextDbError<Self::Context>>
+    {
+        self.0.inspect_frame_run()
     }
 }
 
