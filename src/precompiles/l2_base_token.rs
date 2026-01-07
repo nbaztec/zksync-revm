@@ -58,7 +58,8 @@ where
     };
     match selector {
         s if s == BALANCE_OF_SELECTOR => {
-            let address = match Address::try_from(&calldata[4..]) {
+            // TODO: use alloy abi to decode padded params
+            let address = match Address::try_from(&calldata[4 + 12..]) {
                 Ok(addr) => addr,
                 Err(err) => {
                     tracing::error!("failed decoding address for balanceOf(address) call {err:?}");
